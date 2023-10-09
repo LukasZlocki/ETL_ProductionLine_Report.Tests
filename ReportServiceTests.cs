@@ -30,6 +30,31 @@ public class ReportServiceTests
     }
 
     [Fact]
+    public void GetListOfDatesFromDataset_ReturnsListOfDatesWhenColumnNameApears()
+    {
+        // Arrange
+        List<string[]> TestSet = new List<string[]>{
+            new string[] {"aa", "This is column name" , "cc", "dd"},
+            new string[] {"aa", "2022-02-21" , "cc", "dd"},
+            new string[] {"ee", "2022-02-22", "gg", "hh"},
+            new string[] {"ii", "2022-03-04", "kk", "ll"}
+            };
+
+        List<string> expected = new List<string> {
+            "2022-02-21",
+            "2022-02-22",
+            "2022-03-04"
+        };
+
+        // Act
+        ReportService repService = new();
+        List<string> actual = repService.GetListOfDatesFromDataset(TestSet, 1);
+        
+        // Assert
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void GetReportForGivenDay_ReturnsDailyReportForGivenDay() {
 
         // Arrange
@@ -51,7 +76,6 @@ public class ReportServiceTests
         Assert.Equal("0.18", actual.PlanedPercentage);
     }
 
-    // [06.10.2023] Done
     [Fact]
     public void GetListOfDailyReportsBaseOnDataset_ReturnsListOfDailyReportsForGivenDataset() {
         // Arrange
@@ -79,5 +103,34 @@ public class ReportServiceTests
         Assert.Equal("100",  actual[1].PlannedOutput);
         Assert.Equal("65",  actual[1].RealOutput);
         Assert.Equal("0.65",  actual[1].PlanedPercentage);
+    }
+
+    [Fact]
+    public void GetListOfDailyReportsBaseOnDataset_SkipRowWhenDatasetAreColumnDescriptions() {
+        // Arrange
+        List<string[]> TestSet = new List<string[]>{
+            new string[] {"aaa", "bbb", "ccc", "ddd" },
+            new string[] {"2022-02-21", "1200-1300", "40", "5" },
+            new string[] {"2022-02-21", "1500-1600", "60", "3" },
+            new string[] {"aaa", "bbb", "ccc", "ddd" },
+            new string[] {"2022-03-04", "1600-1600", "60", "5" },
+            new string[] {"2022-03-04", "1700-1800", "40", "20" }
+            };
+
+        // Act
+        ReportService service = new();
+        List<ReportDaily> actual = service.GetListOfDailyReportsBaseOnDataset(TestSet, 0);
+
+        // Assert
+        // first object
+        Assert.Equal("2022-02-21", actual[0].Date);
+        Assert.Equal("100",  actual[0].PlannedOutput);
+        Assert.Equal("8",  actual[0].RealOutput);
+        Assert.Equal("0.08",  actual[0].PlanedPercentage);
+        // second object
+        Assert.Equal("2022-03-04", actual[1].Date);
+        Assert.Equal("100",  actual[1].PlannedOutput);
+        Assert.Equal("25",  actual[1].RealOutput);
+        Assert.Equal("0.25",  actual[1].PlanedPercentage);
     }
 }
